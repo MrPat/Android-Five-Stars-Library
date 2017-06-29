@@ -132,26 +132,36 @@ public class FiveStarsDialog implements DialogInterface.OnClickListener{
     }
 
     private void sendEmail() {
-        String nameToUse = appName == null ? context.getPackageName() : appName;
-        String titleToUse = emailTitle == null ? "App Report (" + nameToUse + ")" : emailTitle;
-        String bodyToUse = emailBody == null ? "" : emailBody;
-
-        final Intent emailIntent = new Intent(Intent.ACTION_SEND);
-        emailIntent.setType("text/email");
-        emailIntent.putExtra(Intent.EXTRA_EMAIL, new String[] { supportEmail });
-        emailIntent.putExtra(Intent.EXTRA_SUBJECT, titleToUse);
-        emailIntent.putExtra(Intent.EXTRA_TEXT, bodyToUse);
-
         String titleToAdd = (title == null) ? DEFAULT_TITLE : title;
 
         // Ask the user if they would leave a rating on the app store
         AlertDialog.Builder builder = new AlertDialog.Builder(context);
         builder.setTitle(titleToAdd)
-                .setMessage("Would you like to send feedback to the developer?")
+                .setMessage("Would you like to send feedback to the developer via email?")
                 .setPositiveButton("Yes", new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialog, int which) {
-                        context.startActivity(Intent.createChooser(emailIntent, "Send mail..."));
+                        String nameToUse = appName == null ? context.getPackageName() : appName;
+                        String titleToUse = emailTitle == null ? "App Report (" + nameToUse + ")" : emailTitle;
+                        String bodyToUse = emailBody == null ? "" : emailBody;
+
+                        try {
+                            String mailto = "mailto:" + supportEmail + "?subject=" + titleToUse + "&body=" + bodyToUse.replace("\n","%0D%0A");
+
+                            Log.d(TAG, mailto);
+
+                            final Intent emailIntent = new Intent(Intent.ACTION_VIEW, Uri.parse(mailto));
+
+                            context.startActivity(emailIntent);
+                        } catch (Exception e) {
+                            final Intent emailIntent = new Intent(Intent.ACTION_SEND);
+                            emailIntent.setType("text/plain");
+                            emailIntent.putExtra(Intent.EXTRA_EMAIL, new String[]{supportEmail});
+                            emailIntent.putExtra(Intent.EXTRA_SUBJECT, titleToUse);
+                            emailIntent.putExtra(Intent.EXTRA_TEXT, bodyToUse);
+
+                            context.startActivity(Intent.createChooser(emailIntent, "Send email..."));
+                        }
                     }
                 })
                 .setNegativeButton("No", new DialogInterface.OnClickListener() {

@@ -24,7 +24,8 @@ public class MainActivity extends Activity implements NegativeReviewListener, Re
         setContentView(R.layout.activity_main);
         FiveStarsDialog fiveStarsDialog = new FiveStarsDialog(this, "angelo.gallarello@gmail.com");
         fiveStarsDialog.enable();
-        fiveStarsDialog.setStarColor(Color.YELLOW).showAfter(0);
+        fiveStarsDialog.setStarColor(Color.YELLOW)
+                .setEmailBody("\n\n\nNewline is here\n\nNewline  \n Newline").showAfter(0);
         SharedPreferences shared = getSharedPreferences(getPackageName(), 0);
         SharedPreferences.Editor editor = shared.edit();
         editor.putInt("numOfAccesses", 0);
