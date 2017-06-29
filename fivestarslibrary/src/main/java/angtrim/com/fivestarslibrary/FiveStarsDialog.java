@@ -272,15 +272,18 @@ public class FiveStarsDialog implements DialogInterface.OnClickListener{
         return this;
     }
 
-    public void setEmailTitle(String emailTitle) {
+    public FiveStarsDialog setEmailTitle(String emailTitle) {
         this.emailTitle = emailTitle;
+        return this;
     }
 
-    public void setEmailBody(String emailBody) {
+    public FiveStarsDialog setEmailBody(String emailBody) {
         this.emailBody = emailBody;
+        return this;
     }
 
-    public void setAppName(String appName) {
+    public FiveStarsDialog setAppName(String appName) {
         this.appName = appName;
+        return this;
     }
 }
