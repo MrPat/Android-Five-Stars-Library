@@ -19,13 +19,13 @@ import android.widget.TextView;
  * Created by angtrim on 12/09/15.
  *
  */
-public class FiveStarsDialog  implements DialogInterface.OnClickListener{
+public class FiveStarsDialog implements DialogInterface.OnClickListener{
 
     private final static String DEFAULT_TITLE = "Rate this app";
     private final static String DEFAULT_TEXT = "How much do you love our app?";
     private final static String DEFAULT_POSITIVE = "Ok";
     private final static String DEFAULT_NEGATIVE = "Not Now";
-    private final static String DEFAULT_NEVER = "Never";
+    private final static String DEFAULT_NEVER = "No thanks";
     private final static String SP_NUM_OF_ACCESS = "numOfAccess";
     private static final String SP_DISABLED = "disabled";
     private static final String TAG = FiveStarsDialog.class.getSimpleName();
@@ -43,6 +43,9 @@ public class FiveStarsDialog  implements DialogInterface.OnClickListener{
     private NegativeReviewListener negativeReviewListener;
     private ReviewListener reviewListener;
     private int starColor;
+    private String emailTitle;
+    private String emailBody;
+    private String appName;
 
 
     public FiveStarsDialog(Context context,String supportEmail){
@@ -59,6 +62,7 @@ public class FiveStarsDialog  implements DialogInterface.OnClickListener{
         String textToAdd = (rateText == null) ? DEFAULT_TEXT : rateText;
         contentTextView = (TextView)dialogView.findViewById(R.id.text_content);
         contentTextView.setText(textToAdd);
+        contentTextView.setVisibility(View.GONE);
         ratingBar = (RatingBar) dialogView.findViewById(R.id.ratingBar);
         ratingBar.setOnRatingBarChangeListener(new RatingBar.OnRatingBarChangeListener() {
             @Override
@@ -79,6 +83,7 @@ public class FiveStarsDialog  implements DialogInterface.OnClickListener{
         }
 
         alertDialog = builder.setTitle(titleToAdd)
+                .setMessage(textToAdd)
                 .setView(dialogView)
                 .setNegativeButton(DEFAULT_NEGATIVE,this)
                 .setPositiveButton(DEFAULT_POSITIVE,this)
@@ -93,22 +98,68 @@ public class FiveStarsDialog  implements DialogInterface.OnClickListener{
         editor.apply();
     }
 
+    public void enable() {
+        SharedPreferences shared = context.getSharedPreferences(context.getPackageName(), Context.MODE_PRIVATE);
+        SharedPreferences.Editor editor = shared.edit();
+        editor.putBoolean(SP_DISABLED, false);
+        editor.apply();
+    }
+
     private void openMarket() {
         final String appPackageName = context.getPackageName();
-        try {
-            context.startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse("market://details?id=" + appPackageName)));
-        } catch (android.content.ActivityNotFoundException anfe) {
-            context.startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse("https://play.google.com/store/apps/details?id=" + appPackageName)));
-        }
+        String titleToAdd = (title == null) ? DEFAULT_TITLE : title;
+
+        // Ask the user if they would leave a rating on the app store
+        AlertDialog.Builder builder = new AlertDialog.Builder(context);
+        builder.setTitle(titleToAdd)
+                .setMessage("Would you like to leave a review on the app store? It really helps me out.")
+                .setPositiveButton("Sure", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        try {
+                            context.startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse("market://details?id=" + appPackageName)));
+                        } catch (android.content.ActivityNotFoundException anfe) {
+                            context.startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse("https://play.google.com/store/apps/details?id=" + appPackageName)));
+                        }
+                    }
+                })
+                .setNegativeButton("No thanks", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        // do nothing
+                    }
+                }).create().show();
     }
 
     private void sendEmail() {
+        String nameToUse = appName == null ? context.getPackageName() : appName;
+        String titleToUse = emailTitle == null ? "App Report (" + nameToUse + ")" : emailTitle;
+        String bodyToUse = emailBody == null ? "" : emailBody;
+
         final Intent emailIntent = new Intent(Intent.ACTION_SEND);
         emailIntent.setType("text/email");
-        emailIntent.putExtra(Intent.EXTRA_EMAIL,new String[] {supportEmail});
-        emailIntent.putExtra(Intent.EXTRA_SUBJECT, "App Report ("+context.getPackageName()+")");
-        emailIntent.putExtra(Intent.EXTRA_TEXT, "");
-        context.startActivity(Intent.createChooser(emailIntent, "Send mail..."));
+        emailIntent.putExtra(Intent.EXTRA_EMAIL, new String[] { supportEmail });
+        emailIntent.putExtra(Intent.EXTRA_SUBJECT, titleToUse);
+        emailIntent.putExtra(Intent.EXTRA_TEXT, bodyToUse);
+
+        String titleToAdd = (title == null) ? DEFAULT_TITLE : title;
+
+        // Ask the user if they would leave a rating on the app store
+        AlertDialog.Builder builder = new AlertDialog.Builder(context);
+        builder.setTitle(titleToAdd)
+                .setMessage("Would you like to send feedback to the developer?")
+                .setPositiveButton("Yes", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        context.startActivity(Intent.createChooser(emailIntent, "Send mail..."));
+                    }
+                })
+                .setNegativeButton("No", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        // do nothing
+                    }
+                }).create().show();
     }
 
     private void show() {
@@ -221,4 +272,15 @@ public class FiveStarsDialog  implements DialogInterface.OnClickListener{
         return this;
     }
 
+    public void setEmailTitle(String emailTitle) {
+        this.emailTitle = emailTitle;
+    }
+
+    public void setEmailBody(String emailBody) {
+        this.emailBody = emailBody;
+    }
+
+    public void setAppName(String appName) {
+        this.appName = appName;
+    }
 }

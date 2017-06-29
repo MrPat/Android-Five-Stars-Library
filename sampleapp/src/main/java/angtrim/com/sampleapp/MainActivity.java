@@ -1,7 +1,9 @@
 package angtrim.com.sampleapp;
 
+import android.app.Activity;
+import android.content.SharedPreferences;
+import android.graphics.Color;
 import android.os.Bundle;
-import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -12,7 +14,7 @@ import angtrim.com.fivestarslibrary.NegativeReviewListener;
 import angtrim.com.fivestarslibrary.ReviewListener;
 
 
-public class MainActivity extends AppCompatActivity implements NegativeReviewListener, ReviewListener {
+public class MainActivity extends Activity implements NegativeReviewListener, ReviewListener {
 
     private static final String TAG = MainActivity.class.getSimpleName();
 
@@ -20,15 +22,13 @@ public class MainActivity extends AppCompatActivity implements NegativeReviewLis
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-        FiveStarsDialog fiveStarsDialog = new FiveStarsDialog(this,"angelo.gallarello@gmail.com");
-        fiveStarsDialog.setRateText("Your custom text")
-                .setTitle("Your custom title")
-                .setForceMode(false)
-                .setUpperBound(2)
-                .setNegativeReviewListener(this)
-                .setReviewListener(this)
-                .showAfter(0);
-
+        FiveStarsDialog fiveStarsDialog = new FiveStarsDialog(this, "angelo.gallarello@gmail.com");
+        fiveStarsDialog.enable();
+        fiveStarsDialog.setStarColor(Color.YELLOW).showAfter(0);
+        SharedPreferences shared = getSharedPreferences(getPackageName(), 0);
+        SharedPreferences.Editor editor = shared.edit();
+        editor.putInt("numOfAccesses", 0);
+        editor.apply();
     }
 
     @Override
